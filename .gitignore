@@ -6,3 +6,6 @@ run_experiment.py
 
 # Added by GSim
 gsim_conf.py
+.vscode
+__pycache__
+output
