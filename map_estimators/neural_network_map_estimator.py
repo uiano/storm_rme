@@ -310,12 +310,18 @@ class NeuralNetworkEstimator(Model):
                 print(f"{ind_maps} maps generated")
 
             attempts = 0
+            max_attempts = 100
             while True:
                 map_patch = map_generator.generate_map()
                 attempts += 1
 
                 if map_patch.m_meas_sf.shape[0] > 0:
-                    print(f'Attempts to generate a map: {attempts}')
+                    break
+
+                if attempts > max_attempts:
+                    print(
+                        f'Reach the maximum number of attempts to generate a map: {attempts}'
+                    )
                     break
 
             map_patch.grid = grid

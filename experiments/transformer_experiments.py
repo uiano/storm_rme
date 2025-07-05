@@ -452,11 +452,12 @@ def train_selected_model(model,
 class ExperimentSet(gsim.AbstractExperimentSet):
 
     ############################################################################
-    # 10. Dataset generation experiments
+    # 10. Generate training datasets
     ############################################################################
 
+    # Transformer
     # USRP, 32x32 grid, 6 feats, 120 meas, without maps 6, 17
-    def experiment_1100(l_args):
+    def experiment_1000(l_args):
 
         height = 5
         num_points_x = 32
@@ -477,8 +478,9 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                     num_patches_to_gen=80,
                     num_feat=num_feat)
 
+    # Transformer
     # Gradiant, 16x16 grid, 6 feats, 100 meas, maps [0, 1]
-    def experiment_1200(l_args):
+    def experiment_1005(l_args):
 
         metric = 'rsrp'
         folder = folder_datasets + f'rme_datasets/gradiant/combined/{metric}/'
@@ -498,14 +500,15 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                 folder=folder,
                 gridpoint_spacing=gridpoint_spacing),
             save_to_folder=
-            f'output/datasets/gradiant_{num_points_x}x{num_points_x}_{metric}_train_800k/',
+            f'output/datasets/gradiant_{num_points_x}x{num_points_x}_{metric}/',
             num_obs=num_obs,
             num_examples_per_map=10,
-            num_patches_to_gen=80000,
+            num_patches_to_gen=80,
             num_feat=num_feat)
 
+    # Transformer
     # Ray-tracing, 16x16 grid, 6 feats, 100 meas, maps 1->40
-    def experiment_1305(l_args):
+    def experiment_1010(l_args):
 
         gridpoint_spacing = 4
         num_points_x = 16
@@ -523,526 +526,15 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         gen_dataset(
             map_generator=map_generator,
             save_to_folder=
-            f'output/datasets/ray_tracing_{num_points_x}x{num_points_x}_train_800k/',
+            f'output/datasets/ray_tracing_{num_points_x}x{num_points_x}/',
             num_obs=num_obs,
             num_examples_per_map=10,
-            num_patches_to_gen=80000,
+            num_patches_to_gen=80,
             num_feat=num_feat)
 
-    ############################################################################
-    # 20. Estimator training experiments
-    ############################################################################
-
-    # USRP, transformers
-    # 120 meas, 6 feats, 2 heads, 48 dim embedding, 4 layers
-    # before fixing the bug in reshape_for_multihead_attention
-    def experiment_2100(l_args):
-        num_obs = 120  # + 1 for the target location
-        num_feat = 6
-        file_path = 'output/datasets/usrp_32x32_train_800k/transformer_dataset_meas-' \
-            + str(num_obs) + '_feats-' + str(num_feat)
-
-        dataset = load_tensor_dataset(file_path + '.pth')
-
-        print(f'Num. train. examples: {len(dataset)}')
-        print(f'Num. obs: {num_obs-1}')
-
-        return train_transformer(
-            dataset,
-            dataset_val=None,
-            nn_folder=os.path.join(
-                dnn_folder,
-                f"transformer_{inspect.currentframe().f_code.co_name}"),
-            num_candidates_train=None,
-            context_len_min=40,
-            num_feat=num_feat,
-            num_heads=2,
-            dim_embedding=48,  # 48
-            num_layers=4,  # 4
-            dropout_prob=0.0,
-            b_causal_masking=True,
-            device_type='mps',
-            num_epochs=10,
-            val_split=0.2,
-            lr=5e-5,
-            batch_size=1024,
-            batch_size_eval=1024,
-            lr_patience=20,
-            lr_decay=0.8,
-            shuffle=True,
-            first_epoch_to_plot=4,
-            llc=LossLandscapeConfig(epoch_inds=[],
-                                    max_num_directions=4,
-                                    neg_gradient_step_scales=np.linspace(
-                                        -2e-3, 2e-3, 19)))
-
-    # USRP, transformers
-    # 120 meas, 6 feats, 2 heads, 48 dim embedding, 4 layers
-    # after fixing the bug in reshape_for_multihead_attention
-    def experiment_2100_5(l_args):
-        num_obs = 120  # + 1 for the target location
-        num_feat = 6
-        file_path = 'output/datasets/usrp_32x32_train_800k/transformer_dataset_meas-' \
-            + str(num_obs) + '_feats-' + str(num_feat)
-
-        dataset = load_tensor_dataset(file_path + '.pth')
-
-        print(f'Num. train. examples: {len(dataset)}')
-        print(f'Num. obs: {num_obs}')
-
-        return train_transformer(
-            dataset,
-            dataset_val=None,
-            nn_folder=os.path.join(
-                dnn_folder,
-                f"transformer_{inspect.currentframe().f_code.co_name}"),
-            context_len_min=40,
-            num_feat=num_feat,
-            num_heads=2,
-            dim_embedding=48,  # 48
-            num_layers=4,  # 4
-            dropout_prob=0.0,
-            b_causal_masking=True,
-            device_type='cuda:0',
-            num_epochs=1000,
-            val_split=0.2,
-            lr=5e-5,
-            batch_size=2048,
-            batch_size_eval=1024,
-            lr_patience=20,
-            lr_decay=0.8,
-            shuffle=True,
-            first_epoch_to_plot=4,
-            llc=LossLandscapeConfig(epoch_inds=[],
-                                    max_num_directions=4,
-                                    neg_gradient_step_scales=np.linspace(
-                                        -2e-3, 2e-3, 19)))
-
-    # USRP, transformers
-    # 120 meas, 6 feats, 6 heads, 192 dim embedding, 6 layers
-    # after fixing the bug in reshape_for_multihead_attention
-    def experiment_2100_10(l_args):
-        num_obs = 120  # + 1 for the target location
-        num_feat = 6
-        file_path = 'output/datasets/usrp_32x32_train_800k/transformer_dataset_meas-' \
-            + str(num_obs) + '_feats-' + str(num_feat)
-
-        dataset = load_tensor_dataset(file_path + '.pth')
-
-        print(f'Num. train. examples: {len(dataset)}')
-        print(f'Num. obs: {num_obs}')
-
-        return train_transformer(
-            dataset,
-            dataset_val=None,
-            nn_folder=os.path.join(
-                dnn_folder,
-                f"transformer_{inspect.currentframe().f_code.co_name}"),
-            context_len_min=40,
-            num_feat=num_feat,
-            num_heads=6,
-            dim_embedding=192,
-            num_layers=6,
-            dropout_prob=0.0,
-            b_causal_masking=True,
-            device_type='cuda:1',
-            num_epochs=1000,
-            val_split=0.2,
-            lr=5e-5,
-            batch_size=1024,
-            batch_size_eval=1024,
-            lr_patience=20,
-            lr_decay=0.8,
-            shuffle=True,
-            first_epoch_to_plot=4,
-            llc=LossLandscapeConfig(epoch_inds=[],
-                                    max_num_directions=4,
-                                    neg_gradient_step_scales=np.linspace(
-                                        -2e-3, 2e-3, 19)))
-
-    # USRP, transformers
-    # 120 meas, 6 feats, 4 heads, 96 dim embedding, 8 layers
-    # after fixing the bug in reshape_for_multihead_attention
-    def experiment_2100_15(l_args):
-        num_obs = 120  # + 1 for the target location
-        num_feat = 6
-        file_path = 'output/datasets/usrp_32x32_train_800k/transformer_dataset_meas-' \
-            + str(num_obs) + '_feats-' + str(num_feat)
-
-        dataset = load_tensor_dataset(file_path + '.pth')
-
-        print(f'Num. train. examples: {len(dataset)}')
-        print(f'Num. obs: {num_obs}')
-
-        return train_transformer(
-            dataset,
-            dataset_val=None,
-            nn_folder=os.path.join(
-                dnn_folder,
-                f"transformer_{inspect.currentframe().f_code.co_name}"),
-            context_len_min=40,
-            num_feat=num_feat,
-            num_heads=4,
-            dim_embedding=6 * 16,  # 48
-            num_layers=8,  # 4
-            dropout_prob=0.0,
-            b_causal_masking=True,
-            device_type='cuda:2',
-            num_epochs=1000,
-            val_split=0.2,
-            lr=5e-5,
-            batch_size=1024,
-            batch_size_eval=1024,
-            lr_patience=20,
-            lr_decay=0.8,
-            shuffle=True,
-            first_epoch_to_plot=4,
-            llc=LossLandscapeConfig(epoch_inds=[],
-                                    max_num_directions=4,
-                                    neg_gradient_step_scales=np.linspace(
-                                        -2e-3, 2e-3, 19)))
-
-    # Gradiant, transformers
-    # 100 meas, 6 feats, 2 heads, 48 dim embedding, 4 layers
-    # before fixing the bug in reshape_for_multihead_attention
-    def experiment_2105(l_args):
-        num_obs = 100  # + 1 for the target location
-        num_feat = 6
-        file_path = 'output/datasets/gradiant_16x16_rsrp_train_800k/transformer_dataset_meas-' \
-            + str(num_obs) + '_feats-' + str(num_feat)
-
-        dataset = load_tensor_dataset(file_path + '.pth')
-
-        print(f'Num. train. examples: {len(dataset)}')
-        print(f'Num. obs: {num_obs}')
-
-        return train_transformer(
-            dataset,
-            dataset_val=None,
-            nn_folder=os.path.join(
-                dnn_folder,
-                f"transformer_{inspect.currentframe().f_code.co_name}"),
-            context_len_min=10,
-            num_feat=num_feat,
-            num_heads=2,
-            dim_embedding=48,
-            num_layers=4,
-            dropout_prob=0.0,
-            b_causal_masking=True,
-            device_type='cuda:1',
-            num_epochs=1000,
-            val_split=0.2,
-            lr=5e-6,
-            batch_size=1024,
-            batch_size_eval=1024,
-            lr_patience=20,
-            lr_decay=0.8,
-            shuffle=True,
-            first_epoch_to_plot=4,
-            llc=LossLandscapeConfig(epoch_inds=[],
-                                    max_num_directions=4,
-                                    neg_gradient_step_scales=np.linspace(
-                                        -2e-3, 2e-3, 19)))
-
-    # Gradiant, transformers
-    # 100 meas, 6 feats, 2 heads, 48 dim embedding, 4 layers
-    # after fixing the bug in reshape_for_multihead_attention
-    def experiment_2105_1(l_args):
-        num_obs = 100  # + 1 for the target location
-        num_feat = 6
-        file_path = 'output/datasets/gradiant_16x16_rsrp_train_800k/transformer_dataset_meas-' \
-            + str(num_obs) + '_feats-' + str(num_feat)
-
-        dataset = load_tensor_dataset(file_path + '.pth')
-
-        print(f'Num. train. examples: {len(dataset)}')
-        print(f'Num. obs: {num_obs}')
-
-        return train_transformer(
-            dataset,
-            dataset_val=None,
-            nn_folder=os.path.join(
-                dnn_folder,
-                f"transformer_{inspect.currentframe().f_code.co_name}"),
-            context_len_min=10,
-            num_feat=num_feat,
-            num_heads=2,
-            dim_embedding=48,
-            num_layers=4,
-            dropout_prob=0.0,
-            b_causal_masking=True,
-            device_type='cuda:2',
-            num_epochs=1000,
-            val_split=0.2,
-            lr=5e-5,
-            batch_size=1024,
-            batch_size_eval=1024,
-            lr_patience=20,
-            lr_decay=0.8,
-            shuffle=True,
-            first_epoch_to_plot=4,
-            llc=LossLandscapeConfig(epoch_inds=[],
-                                    max_num_directions=4,
-                                    neg_gradient_step_scales=np.linspace(
-                                        -2e-3, 2e-3, 19)))
-
-    # Gradiant, transformers
-    # 100 meas, 6 feats, 2 heads, 96 dim embedding, 6 layers
-    # before fixing the bug in reshape_for_multihead_attention
-    def experiment_2105_3(l_args):
-        num_obs = 100  # + 1 for the target location
-        num_feat = 6
-        file_path = 'output/datasets/gradiant_16x16_rsrp_train_800k/transformer_dataset_meas-' \
-            + str(num_obs) + '_feats-' + str(num_feat)
-
-        dataset = load_tensor_dataset(file_path + '.pth')
-
-        print(f'Num. train. examples: {len(dataset)}')
-        print(f'Num. obs: {num_obs}')
-
-        return train_transformer(
-            dataset,
-            dataset_val=None,
-            nn_folder=os.path.join(
-                dnn_folder,
-                f"transformer_{inspect.currentframe().f_code.co_name}"),
-            context_len_min=10,
-            num_feat=num_feat,
-            num_heads=2,
-            dim_embedding=96,
-            num_layers=6,
-            dropout_prob=0.0,
-            b_causal_masking=True,
-            device_type='cuda:2',
-            num_epochs=1000,
-            val_split=0.2,
-            lr=5e-5,
-            batch_size=2048,
-            batch_size_eval=1024,
-            lr_patience=20,
-            lr_decay=0.8,
-            shuffle=True,
-            first_epoch_to_plot=4,
-            llc=LossLandscapeConfig(epoch_inds=[],
-                                    max_num_directions=4,
-                                    neg_gradient_step_scales=np.linspace(
-                                        -2e-3, 2e-3, 19)))
-
-    # Ray tracing, transformers
-    # 100 meas, 6 feats, 2 heads, 48 dim embedding, 4 layers
-    # after fixing the bug in reshape_for_multihead_attention
-    def experiment_2110(l_args):
-        num_obs = 100  # + 1 for the target location
-        num_feat = 6
-        file_path = 'output/datasets/ray_tracing_16x16_train_800k/transformer_dataset_meas-' \
-            + str(num_obs) + '_feats-' + str(num_feat)
-
-        dataset = load_tensor_dataset(file_path + '.pth')
-
-        print(f'Num. train. examples: {len(dataset)}')
-        print(f'Num. obs: {num_obs-1}')
-
-        # question: should I choose different models for different datasets?
-
-        return train_transformer(
-            dataset,
-            dataset_val=None,
-            nn_folder=os.path.join(
-                dnn_folder,
-                f"transformer_{inspect.currentframe().f_code.co_name}"),
-            context_len_min=10,
-            num_feat=num_feat,
-            num_heads=2,
-            dim_embedding=48,
-            num_layers=4,
-            dropout_prob=0.0,
-            b_causal_masking=True,
-            device_type='cuda:3',
-            num_epochs=1000,
-            val_split=0.2,
-            lr=2e-4,
-            batch_size=2048,
-            batch_size_eval=1024,
-            lr_patience=20,
-            lr_decay=0.8,
-            shuffle=True,
-            first_epoch_to_plot=4,
-            llc=LossLandscapeConfig(epoch_inds=[],
-                                    max_num_directions=4,
-                                    neg_gradient_step_scales=np.linspace(
-                                        -2e-3, 2e-3, 19)))
-
-    # Ray tracing, KNN
-    # 16x16 grid, 100 meas, 10->100 obs, height 20
-    def experiment_2200(l_args):
-
-        evaluation_mode_train = 'uniform_standard'
-        dataset_name = 'ray_tracing'
-        folder_out = 'output/trained_estimators/'
-
-        gridpoint_spacing = 4
-        num_points_x = 16
-        height = 20
-        num_mc_iter_train = 1000
-        num_obs_train = (10, 100)
-
-        l_estimators = [
-            KNNEstimator(name_on_figs='KNN 1',
-                         d_train_params=OrderedDict(
-                             {'num_neighbors': np.arange(2, 13)})),
-            # GudmundsonBatchKrigingEstimator(d_train_params=OrderedDict({
-            #     'shadowing_std':
-            #     np.arange(0.01, 1, 0.1),
-            #     'shadowing_correlation_dist':
-            #     np.array([50, 100, 150, 200, 250]),
-            # })),
-            # KernelRidgeRegressionEstimator(d_train_params=OrderedDict(
-            #     {
-            #         'kernel_width': 4 * np.arange(1, 11),
-            #         'log_reg_par': np.arange(-12, 0),
-            #         'kernel_type': ['gaussian', 'laplacian']
-            #     })),
-        ]
-
-        for estimator in l_estimators:
-            print(f'Training {estimator.__class__.__name__}')
-
-            G = estimator.train(map_generator=InsiteMapGenerator(
-                l_file_num=np.arange(1, 41),
-                patch_side_len=num_points_x * gridpoint_spacing,
-                z_coord=height,
-                folder=folder_datasets + f'insite_data/power_rosslyn/',
-                gridpoint_spacing=gridpoint_spacing),
-                                num_obs=num_obs_train,
-                                evaluation_mode=evaluation_mode_train,
-                                num_mc_iter=num_mc_iter_train,
-                                verbosity=5)
-
-            # save the estimator
-            folder_path = folder_out + f"{dataset_name}-{num_points_x}x{num_points_x}-{num_obs_train[0]}_to_{num_obs_train[1]}_meas/" + estimator.__class__.__name__ + "/"
-            estimator.save_estimator(folder_path)
-
-            # save the figure containing the training curves
-            pickle.dump(G, open(folder_path + "G_train.pickle", "wb"))
-
-        return
-
-    # Ray tracing, Kriging
-    # 16x16 grid, 100 meas, 10->100 obs, height 20
-    def experiment_2200_3(l_args):
-
-        evaluation_mode_train = 'uniform_standard'
-        dataset_name = 'ray_tracing'
-        folder_out = 'output/trained_estimators/'
-
-        gridpoint_spacing = 4
-        num_points_x = 16
-        height = 20
-        num_mc_iter_train = 1000
-        num_obs_train = (10, 100)
-
-        l_estimators = [
-            # KNNEstimator(name_on_figs='KNN 1',
-            #              d_train_params=OrderedDict(
-            #                  {'num_neighbors': np.arange(2, 13)})),
-            GudmundsonBatchKrigingEstimator(d_train_params=OrderedDict({
-                'shadowing_std':
-                np.arange(0.01, 1, 0.1),
-                'shadowing_correlation_dist':
-                np.array([50, 100, 150, 200, 250]),
-            })),
-            # KernelRidgeRegressionEstimator(d_train_params=OrderedDict(
-            #     {
-            #         'kernel_width': 4 * np.arange(1, 11),
-            #         'log_reg_par': np.arange(-12, 0),
-            #         'kernel_type': ['gaussian', 'laplacian']
-            #     })),
-        ]
-
-        for estimator in l_estimators:
-
-            print(f'Training {estimator.__class__.__name__}')
-
-            G = estimator.train(map_generator=InsiteMapGenerator(
-                l_file_num=np.arange(1, 41),
-                patch_side_len=num_points_x * gridpoint_spacing,
-                z_coord=height,
-                folder=folder_datasets + f'insite_data/power_rosslyn/',
-                gridpoint_spacing=gridpoint_spacing),
-                                num_obs=num_obs_train,
-                                evaluation_mode=evaluation_mode_train,
-                                num_mc_iter=num_mc_iter_train,
-                                verbosity=5)
-
-            # save the estimator
-            folder_path = folder_out + f"{dataset_name}-{num_points_x}x{num_points_x}-{num_obs_train[0]}_to_{num_obs_train[1]}_meas/" + estimator.__class__.__name__ + "/"
-            estimator.save_estimator(folder_path)
-
-            # save the figure containing the training curves
-            pickle.dump(G, open(folder_path + "G_train.pickle", "wb"))
-
-        return
-
-    # Ray tracing, KRR
-    # 16x16 grid, 100 meas, 10->100 obs, height 20
-    def experiment_2200_7(l_args):
-
-        evaluation_mode_train = 'uniform_standard'
-        dataset_name = 'ray_tracing'
-        folder_out = 'output/trained_estimators/'
-
-        gridpoint_spacing = 4
-        num_points_x = 16
-        height = 20
-        num_mc_iter_train = 1000
-        num_obs_train = (10, 100)
-
-        l_estimators = [
-            # KNNEstimator(name_on_figs='KNN 1',
-            #              d_train_params=OrderedDict(
-            #                  {'num_neighbors': np.arange(2, 13)})),
-            # GudmundsonBatchKrigingEstimator(d_train_params=OrderedDict({
-            #     'shadowing_std':
-            #     np.arange(0.01, 1, 0.1),
-            #     'shadowing_correlation_dist':
-            #     np.array([50, 100, 150, 200, 250]),
-            # })),
-            KernelRidgeRegressionEstimator(d_train_params=OrderedDict(
-                {
-                    'kernel_width': 4 * np.arange(1, 11),
-                    'log_reg_par': np.arange(-12, 0),
-                    'kernel_type': ['gaussian', 'laplacian']
-                })),
-        ]
-
-        for estimator in l_estimators:
-
-            print(f'Training {estimator.__class__.__name__}')
-
-            G = estimator.train(map_generator=InsiteMapGenerator(
-                l_file_num=np.arange(1, 41),
-                patch_side_len=num_points_x * gridpoint_spacing,
-                z_coord=height,
-                folder=folder_datasets + f'insite_data/power_rosslyn/',
-                gridpoint_spacing=gridpoint_spacing),
-                                num_obs=num_obs_train,
-                                evaluation_mode=evaluation_mode_train,
-                                num_mc_iter=num_mc_iter_train,
-                                verbosity=5)
-
-            # save the estimator
-            folder_path = folder_out + f"{dataset_name}-{num_points_x}x{num_points_x}-{num_obs_train[0]}_to_{num_obs_train[1]}_meas/" + estimator.__class__.__name__ + "/"
-            estimator.save_estimator(folder_path)
-
-            # save the figure containing the training curves
-            pickle.dump(G, open(folder_path + "G_train.pickle", "wb"))
-
-        return
-
-    # Ray tracing
-    # create training and testing datasets for DNN benchmarks
-    # 16x16 grid, height 20
-    def experiment_2400(l_args):
+    # DNN benchmarks
+    # Ray tracing, 16x16 grid, height 20
+    def experiment_1015(l_args):
         # copied from 7201 in spectrum_measurement_experiments
 
         # ray-tracing dataset
@@ -1059,9 +551,9 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         l_file_num_test = [41, 42]
 
         # parameters to get training and testing data
-        num_maps_train = 30000  # 30000
+        num_maps_train = 30
         num_blocks_per_map_train = 5
-        num_maps_test = 1000  # 1000
+        num_maps_test = 10
         num_blocks_per_map_test = 5
         num_meas_fraction_per_map = (10 / 256, 100 / 256
                                      )  # can be a float or a tuple of floats
@@ -1137,9 +629,193 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                 "wb") as f:
             pickle.dump(d_train_and_test_data, f)
 
+    ############################################################################
+    # 20. Train the estimators
+    ############################################################################
+
+    # USRP, transformers
+    # 120 meas, 6 feats, 2 heads, 48 dim embedding, 4 layers
+    def experiment_2000(l_args):
+        num_obs = 120 + 1  # + 1 for the target location
+        num_feat = 6
+        file_path = 'output/datasets/usrp_32x32/preprocessed_transformer_dataset-' \
+            + str(num_obs) + '_meas-' + str(num_feat) + '_feats'
+
+        dataset = load_tensor_dataset(file_path + '.pth')
+
+        print(f'Num. train. examples: {len(dataset)}')
+        print(f'Num. obs: {num_obs}')
+
+        return train_transformer(
+            dataset,
+            dataset_val=None,
+            nn_folder=os.path.join(
+                dnn_folder,
+                f"transformer_{inspect.currentframe().f_code.co_name}"),
+            context_len_min=40,
+            num_feat=num_feat,
+            num_heads=2,
+            dim_embedding=48,
+            num_layers=4,
+            dropout_prob=0.0,
+            b_causal_masking=True,
+            device_type='mps',
+            num_epochs=10,
+            val_split=0.2,
+            lr=5e-5,
+            batch_size=20,
+            batch_size_eval=10,
+            lr_patience=20,
+            lr_decay=0.8,
+            shuffle=True,
+            first_epoch_to_plot=4,
+            llc=LossLandscapeConfig(epoch_inds=[],
+                                    max_num_directions=4,
+                                    neg_gradient_step_scales=np.linspace(
+                                        -2e-3, 2e-3, 19)))
+
+    # Gradiant, transformers
+    # 100 meas, 6 feats, 2 heads, 48 dim embedding, 4 layers
+    def experiment_2005(l_args):
+        num_obs = 100 + 1  # + 1 for the target location
+        num_feat = 6
+        file_path = 'output/datasets/gradiant_16x16_rsrp/preprocessed_transformer_dataset-' \
+            + str(num_obs) + '_meas-' + str(num_feat) + '_feats'
+
+        dataset = load_tensor_dataset(file_path + '.pth')
+
+        print(f'Num. train. examples: {len(dataset)}')
+        print(f'Num. obs: {num_obs}')
+
+        return train_transformer(
+            dataset,
+            dataset_val=None,
+            nn_folder=os.path.join(
+                dnn_folder,
+                f"transformer_{inspect.currentframe().f_code.co_name}"),
+            context_len_min=10,
+            num_feat=num_feat,
+            num_heads=2,
+            dim_embedding=48,
+            num_layers=4,
+            dropout_prob=0.0,
+            b_causal_masking=True,
+            device_type='mps',
+            num_epochs=10,
+            val_split=0.2,
+            lr=5e-5,
+            batch_size=10,
+            batch_size_eval=10,
+            lr_patience=20,
+            lr_decay=0.8,
+            shuffle=True,
+            first_epoch_to_plot=4,
+            llc=LossLandscapeConfig(epoch_inds=[],
+                                    max_num_directions=4,
+                                    neg_gradient_step_scales=np.linspace(
+                                        -2e-3, 2e-3, 19)))
+
+    # Ray tracing, transformers
+    # 100 meas, 6 feats, 2 heads, 48 dim embedding, 4 layers
+    def experiment_2010(l_args):
+        num_obs = 100 + 1  # + 1 for the target location
+        num_feat = 6
+        file_path = 'output/datasets/ray_tracing_16x16/preprocessed_transformer_dataset-' \
+            + str(num_obs) + '_meas-' + str(num_feat) + '_feats'
+
+        dataset = load_tensor_dataset(file_path + '.pth')
+
+        print(f'Num. train. examples: {len(dataset)}')
+        print(f'Num. obs: {num_obs-1}')
+
+        # question: should I choose different models for different datasets?
+
+        return train_transformer(
+            dataset,
+            dataset_val=None,
+            nn_folder=os.path.join(
+                dnn_folder,
+                f"transformer_{inspect.currentframe().f_code.co_name}"),
+            context_len_min=10,
+            num_feat=num_feat,
+            num_heads=2,
+            dim_embedding=48,
+            num_layers=4,
+            dropout_prob=0.0,
+            b_causal_masking=True,
+            device_type='mps',
+            num_epochs=10,
+            val_split=0.2,
+            lr=2e-4,
+            batch_size=20,
+            batch_size_eval=10,
+            lr_patience=20,
+            lr_decay=0.8,
+            shuffle=True,
+            first_epoch_to_plot=4,
+            llc=LossLandscapeConfig(epoch_inds=[],
+                                    max_num_directions=4,
+                                    neg_gradient_step_scales=np.linspace(
+                                        -2e-3, 2e-3, 19)))
+
+    # Ray tracing, KNN, Kriging, KRR
+    # 16x16 grid, 100 meas, 10->100 obs, height 20
+    def experiment_2500(l_args):
+
+        evaluation_mode_train = 'uniform_standard'
+        dataset_name = 'ray_tracing'
+        folder_out = 'output/trained_estimators/'
+
+        gridpoint_spacing = 4
+        num_points_x = 16
+        height = 20
+        num_mc_iter_train = 10
+        num_obs_train = (10, 100)
+
+        l_estimators = [
+            KNNEstimator(name_on_figs='KNN 1',
+                         d_train_params=OrderedDict(
+                             {'num_neighbors': np.arange(2, 13)})),
+            GudmundsonBatchKrigingEstimator(d_train_params=OrderedDict({
+                'shadowing_std':
+                np.arange(0.01, 1, 0.1),
+                'shadowing_correlation_dist':
+                np.array([50, 100, 150, 200, 250]),
+            })),
+            KernelRidgeRegressionEstimator(d_train_params=OrderedDict(
+                {
+                    'kernel_width': 4 * np.arange(1, 11),
+                    'log_reg_par': np.arange(-12, 0),
+                    'kernel_type': ['gaussian', 'laplacian']
+                })),
+        ]
+
+        for estimator in l_estimators:
+            print(f'Training {estimator.__class__.__name__}')
+
+            G = estimator.train(map_generator=InsiteMapGenerator(
+                l_file_num=np.arange(1, 41),
+                patch_side_len=num_points_x * gridpoint_spacing,
+                z_coord=height,
+                folder=folder_datasets + f'insite_data/power_rosslyn/',
+                gridpoint_spacing=gridpoint_spacing),
+                                num_obs=num_obs_train,
+                                evaluation_mode=evaluation_mode_train,
+                                num_mc_iter=num_mc_iter_train,
+                                verbosity=5)
+
+            # save the estimator
+            folder_path = folder_out + f"{dataset_name}-{num_points_x}x{num_points_x}-{num_obs_train[0]}_to_{num_obs_train[1]}_meas/" + estimator.__class__.__name__ + "/"
+            estimator.save_estimator(folder_path)
+
+            # save the figure containing the training curves
+            pickle.dump(G, open(folder_path + "G_train.pickle", "wb"))
+
+        return
+
     # Ray tracing
-    # train model 1: UnetStdAwareNnEstimator
-    def experiment_2405_1(l_args):
+    # dnn benchmark 1: UnetStdAwareNnEstimator
+    def experiment_2515(l_args):
 
         # copied from exp_7205 from spectrum_measurement_experiments
 
@@ -1260,8 +936,8 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         return G
 
     # Ray tracing
-    # train model 2: UnetStdAwareNnEstimator
-    def experiment_2405_2(l_args):
+    # dnn benchmark 2: UnetStdAwareNnEstimator
+    def experiment_2520(l_args):
 
         # copied from exp_7205 from spectrum_measurement_experiments
 
@@ -1382,8 +1058,8 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         return G
 
     # Ray tracing
-    # train model 3: SurveyingStdAwareNnEstimator
-    def experiment_2405_3(l_args):
+    # dnn benchmark 3: SurveyingStdAwareNnEstimator
+    def experiment_2525(l_args):
 
         # copied from exp_7205 from spectrum_measurement_experiments
 
@@ -1504,8 +1180,8 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         return G
 
     # Ray tracing
-    # train model 4: CompletionAutoencoderEstimator
-    def experiment_2405_4(l_args):
+    # dnn benchmark 4: CompletionAutoencoderEstimator
+    def experiment_2530(l_args):
 
         # copied from exp_7205 from spectrum_measurement_experiments
 
@@ -1626,8 +1302,8 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         return G
 
     # Ray tracing
-    # train model 5: RadioUnetEstimator
-    def experiment_2405_5(l_args):
+    # dnn benchmark 5: RadioUnetEstimator
+    def experiment_2535(l_args):
 
         # copied from exp_7205 from spectrum_measurement_experiments
 
@@ -1746,49 +1422,6 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         G = model.plot_loss(dict_history)
 
         return G
-
-    # Radio mapper, transformers
-    def experiment_2600(l_args):
-        num_obs = 15  # + 1 for the target location
-        num_feat = 6
-        num_points_x = 32
-        file_path = f'output/datasets/radio_mapper_{num_points_x}x{num_points_x}_{num_obs}_obs/' + 'preprocessed_transformer_dataset-' \
-            + str(num_obs+1) + '_meas-' + str(num_feat) + '_feats'
-
-        dataset = load_tensor_dataset(file_path + '.pth')
-
-        print(f'Num. train. examples: {len(dataset)}')
-        print(f'Num. obs: {num_obs-1}')
-
-        # question: should I choose different models for different datasets?
-
-        return train_transformer(
-            dataset,
-            dataset_val=None,
-            nn_folder=os.path.join(
-                dnn_folder,
-                f"transformer_{inspect.currentframe().f_code.co_name}"),
-            context_len_min=1,
-            num_feat=num_feat,
-            num_heads=2,
-            dim_embedding=48,
-            num_layers=4,
-            dropout_prob=0.0,
-            b_causal_masking=True,
-            device_type='mps',
-            num_epochs=10000,
-            val_split=0.2,
-            lr=2e-4,
-            batch_size=200,
-            batch_size_eval=100,
-            lr_patience=6,
-            lr_decay=0.8,
-            shuffle=True,
-            first_epoch_to_plot=4,
-            llc=LossLandscapeConfig(epoch_inds=[],
-                                    max_num_directions=4,
-                                    neg_gradient_step_scales=np.linspace(
-                                        -2e-3, 2e-3, 19)))
 
     ############################################################################
     # 31. Experiments to test and compare estimators
