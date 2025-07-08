@@ -1666,9 +1666,8 @@ class ExperimentSet(gsim.AbstractExperimentSet):
 
         return l_G
 
-    # USRP, knn, kriging, krr, tranformer
+    # USRP, transformer
     # RMSE vs. num obs,
-    # before fixing the bug in reshape_for_multihead_attention
     def experiment_3105(l_args):
 
         folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
@@ -1701,110 +1700,11 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                         dim_embedding=48,
                         num_layers=4,
                         dropout_prob=0,
-                        b_causal_masking=
-                        True,  # It was trained with b_causal_masking=True
-                        device_type='cuda:1',
-                    ),
-                    nn_folder=os.path.join(dnn_folder,
-                                           "transformer_experiment_2100"),
-                ))
-        ]
-
-        return get_rmse_curves(l_file_inds, patch_side_length, height, folder,
-                               num_points_x, gridpoint_spacing,
-                               'uniform_standard', num_mc_iterations,
-                               l_num_obs, l_estimators)
-
-    # USRP, transformer
-    # RMSE vs. num obs,
-    # after fixing the bug in reshape_for_multihead_attention
-    def experiment_3105_1(l_args):
-
-        folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
-        l_file_inds = [6, 17]
-        gridpoint_spacing = 1.2  # set to None for uniform sampling when generating the map
-        num_points_x = 32
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        height = 5
-        num_mc_iterations = 1000  #00  # 1000
-        l_num_obs = [40, 60, 80, 100, 120]
-        # l_num_obs = [120]
-        estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
-
-        num_feat = 6
-        #num_obs = 120
-
-        l_estimators = [
-            # KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
-            # GudmundsonBatchKrigingEstimator().load_estimator(
-            #     estimator_path + "GudmundsonBatchKrigingEstimator/"),
-            # KernelRidgeRegressionEstimator().load_estimator(
-            #     estimator_path + "KernelRidgeRegressionEstimator/"),
-            AttnMapEstimator(
-                num_feat=num_feat,
-                att_dnn=TransformerDnn(
-                    TransformerDnnConf(
-                        dim_input=num_feat + 1,  # num_feat + 1
-                        num_heads=2,
-                        dim_embedding=48,
-                        num_layers=4,
-                        dropout_prob=0,
-                        b_causal_masking=
-                        True,  # It was trained with b_causal_masking=True
+                        b_causal_masking=True,
                         device_type='cuda:0',
                     ),
                     nn_folder=os.path.join(dnn_folder,
-                                           "transformer_experiment_2100_5"),
-                ))
-        ]
-
-        return get_rmse_curves(l_file_inds, patch_side_length, height, folder,
-                               num_points_x, gridpoint_spacing,
-                               'uniform_standard', num_mc_iterations,
-                               l_num_obs, l_estimators)
-
-    # USRP, tranformer
-    # RMSE vs. num obs,
-    # after fixing the bug in reshape_for_multihead_attention
-    def experiment_3105_3(l_args):
-
-        folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
-        l_file_inds = [6, 17]
-        gridpoint_spacing = 1.2  # set to None for uniform sampling when generating the map
-        num_points_x = 32
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        height = 5
-        num_mc_iterations = 1000  #00  # 1000
-        l_num_obs = [40, 60, 80, 100, 120]  #
-        # l_num_obs = [120]
-        estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
-
-        num_feat = 6
-        #num_obs = 120
-
-        l_estimators = [
-            # KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
-            # GudmundsonBatchKrigingEstimator().load_estimator(
-            #     estimator_path + "GudmundsonBatchKrigingEstimator/"),
-            # KernelRidgeRegressionEstimator().load_estimator(
-            #     estimator_path + "KernelRidgeRegressionEstimator/"),
-            AttnMapEstimator(
-                num_feat=num_feat,
-                att_dnn=TransformerDnn(
-                    TransformerDnnConf(
-                        dim_input=num_feat + 1,  # num_feat + 1
-                        num_heads=4,
-                        dim_embedding=96,
-                        num_layers=8,
-                        dropout_prob=0,
-                        b_causal_masking=
-                        True,  # It was trained with b_causal_masking=True
-                        device_type='cuda:1',
-                    ),
-                    nn_folder=os.path.join(dnn_folder,
-                                           "transformer_experiment_2100_15"),
+                                           "transformer_experiment_2100"),
                 ))
         ]
 
@@ -2416,12 +2316,11 @@ class ExperimentSet(gsim.AbstractExperimentSet):
     ############################################################################
 
     # USRP
-    # after fixing the bug in reshape_for_multihead_attention
     def experiment_3300(l_args):
         path_to_results = 'output/transformer_experiments/experiment_'
 
         l_experiment_inds = [
-            '3105',  # transformer before debugging reshape_for_multihead_attention
+            '3105',  # transformers
             '3105_4',  # dnn benchmarks
         ]
 
@@ -2473,7 +2372,6 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         return G
 
     # Gradiant
-    # before fixing the bug in reshape_for_multihead_attention
     def experiment_3307(l_args):
         path_to_results = 'output/transformer_experiments/experiment_'
 
@@ -2529,7 +2427,6 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         return G
 
     # Ray tracing
-    # after fixing the bug in reshape_for_multihead_attention
     def experiment_3315(l_args):
         path_to_results = 'output/transformer_experiments/experiment_'
 
