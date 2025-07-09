@@ -42,7 +42,8 @@ from ..simulators.map_estimation_simulator import MapEstimationSimulator
 from ..map_estimators.transformer_estimator import AttnMapEstimator
 from torch.utils.data import TensorDataset
 
-dnn_folder = 'output/trained_estimators/transformers/'
+path_to_trained_storm = 'output/trained_estimators/transformers/'
+path_to_trained_dnn = 'output/trained_estimators/'
 
 
 def get_non_preprocessed_file_base_name(num_meas_per_map):
@@ -340,7 +341,7 @@ def test_transformers_on_active_sensing(num_meas=None,
 def get_rmse_curves(l_file_inds,
                     patch_side_length,
                     height,
-                    folder,
+                    data_folder,
                     num_points_x,
                     gridpoint_spacing,
                     evaluation_mode,
@@ -354,14 +355,14 @@ def get_rmse_curves(l_file_inds,
                                            patch_side_len=num_points_x *
                                            gridpoint_spacing,
                                            z_coord=height,
-                                           folder=folder,
+                                           folder=data_folder,
                                            gridpoint_spacing=gridpoint_spacing)
     else:
         map_generator = RealDataMapGenerator(
             l_file_num=l_file_inds,
             patch_side_len=patch_side_length,
             z_coord=height,
-            folder=folder,
+            folder=data_folder,
             gridpoint_spacing=gridpoint_spacing)
 
     grid = RectangularGrid(num_points_x=num_points_x,
@@ -650,7 +651,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             dataset,
             dataset_val=None,
             nn_folder=os.path.join(
-                dnn_folder,
+                path_to_trained_storm,
                 f"transformer_{inspect.currentframe().f_code.co_name}"),
             context_len_min=40,
             num_feat=num_feat,
@@ -691,7 +692,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             dataset,
             dataset_val=None,
             nn_folder=os.path.join(
-                dnn_folder,
+                path_to_trained_storm,
                 f"transformer_{inspect.currentframe().f_code.co_name}"),
             context_len_min=10,
             num_feat=num_feat,
@@ -734,7 +735,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             dataset,
             dataset_val=None,
             nn_folder=os.path.join(
-                dnn_folder,
+                path_to_trained_storm,
                 f"transformer_{inspect.currentframe().f_code.co_name}"),
             context_len_min=10,
             num_feat=num_feat,
@@ -1429,18 +1430,15 @@ class ExperimentSet(gsim.AbstractExperimentSet):
 
     # plot map estimates
     def experiment_3100(l_args):
-        # copied from exp 4506 in spectrum_measurement_experiments
 
-        # random_seed = np.random.randint(1000)
         random_seed = 894
         print(f'Random seed: {random_seed}')
         np.random.seed(random_seed)  #100
 
-        folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
+        data_folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
         gridpoint_spacing = 1.2
-        ind_file = 6  # 6 (obs-seed: 40-882; 60-425,564,823; 80-537,672; 100-418,537,682,777,925)
-        # ind_file = 17
-        estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
+        ind_file = 6
+        estimator_path = path_to_trained_dnn + 'usrp-32x32-40_to_150_meas/'
         num_points_x = 32
 
         patch_side_len = num_points_x * gridpoint_spacing
@@ -1449,7 +1447,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         num_obs = 110
         height = 5
         plotting_mode = 'imshow'  # in {'contour3D','imshow' , 'surface'}
-        # zinterpolation = 'bilinear'
+
         zinterpolation = 'none'
 
         grid = RectangularGrid(num_points_x=num_points_x,
@@ -1461,7 +1459,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             l_file_num=[ind_file],
             patch_side_len=patch_side_len,
             z_coord=height,
-            folder=folder,
+            folder=data_folder,
             gridpoint_spacing=gridpoint_spacing)
 
         num_feat = 6
@@ -1505,7 +1503,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                         b_causal_masking=True,
                         device_type='mps',
                     ),
-                    nn_folder=os.path.join(dnn_folder,
+                    nn_folder=os.path.join(path_to_trained_storm,
                                            "transformer_experiment_2100_5"),
                 ))
         ]
@@ -1527,7 +1525,6 @@ class ExperimentSet(gsim.AbstractExperimentSet):
 
             map_estimate = map_estimator.estimate(
                 rmap_obs)["t_power_map_estimate"].t_meas_gf
-            # test_locs=rmap.m_meas_locs_sf)
 
             # rmap.grid = grid  # for plotting purposes
             rmap_est = Map(
@@ -1568,26 +1565,17 @@ class ExperimentSet(gsim.AbstractExperimentSet):
     # plot a 3D map estimate
     def experiment_3100_3(l_args):
 
-        random_seed = np.random.randint(1000)
         ind_map = np.random.randint(17)
-        # random_seed = 894  # 894
+        random_seed = 894
         print(f'Random seed: {random_seed}')
         print(f'ind_map: {ind_map}')
-        np.random.seed(random_seed)  #100
+        np.random.seed(random_seed)
 
         folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
         gridpoint_spacing = 1.2
-        ind_file = ind_map  # 6 (obs-seed: 40-882; 60-425,564,823; 80-537,672; 100-418,537,682,777,925)
-        # ind_file = 17
+
         num_points_x = 42
         height = 5
-
-        # metric = 'rsrp'
-        # folder = folder_datasets + f'rme_datasets/gradiant/combined/{metric}/'
-        # l_file_inds = [2]
-        # height = 5
-        # gridpoint_spacing = 4
-        # num_points_x = 16
 
         patch_side_len = num_points_x * gridpoint_spacing
 
@@ -1604,24 +1592,21 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                                                   "KNNEstimator/")
 
         num_feat = 6
-        # estimator = AttnMapEstimator(
-        #     num_feat=num_feat,
-        #     att_dnn=TransformerDnn(
-        #         TransformerDnnConf(
-        #             dim_input=num_feat + 1,  # num_feat + 1
-        #             # max_context_len=num_obs - 1,
-        #             num_heads=2,
-        #             dim_embedding=48,
-        #             num_layers=4,
-        #             dropout_prob=0,
-        #             b_causal_masking=True,
-        #             device_type='mps',
-        #         ),
-        #         nn_folder=os.path.join(dnn_folder,
-        #                                "transformer_experiment_2100_5"),
-        #         # nn_folder=os.path.join(dnn_folder,
-        #         #                        "transformer_experiment_2105"),
-        #     ))
+        estimator = AttnMapEstimator(
+            num_feat=num_feat,
+            att_dnn=TransformerDnn(
+                TransformerDnnConf(
+                    dim_input=num_feat + 1,  # num_feat + 1
+                    num_heads=2,
+                    dim_embedding=48,
+                    num_layers=4,
+                    dropout_prob=0,
+                    b_causal_masking=True,
+                    device_type='mps',
+                ),
+                nn_folder=os.path.join(path_to_trained_storm,
+                                       "transformer_experiment_2100"),
+            ))
         l_G = []
 
         for ind_map in range(1, 18):
@@ -1642,10 +1627,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             map_estimate = estimator.estimate(
                 rmap_obs)["t_power_map_estimate"].t_meas_gf
 
-            rmap_est = Map(
-                grid=grid,
-                t_meas_gf=map_estimate  #d_map_estimate["t_power_map_estimate"]
-            )
+            rmap_est = Map(grid=grid, t_meas_gf=map_estimate)
 
             G = rmap_est.plot()
 
@@ -1666,70 +1648,28 @@ class ExperimentSet(gsim.AbstractExperimentSet):
 
         return l_G
 
-    # USRP, transformer
+    # USRP
     # RMSE vs. num obs,
     def experiment_3105(l_args):
 
-        folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
+        data_folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
         l_file_inds = [6, 17]
         gridpoint_spacing = 1.2  # set to None for uniform sampling when generating the map
         num_points_x = 32
         patch_side_length = num_points_x * gridpoint_spacing
 
         height = 5
-        num_mc_iterations = 1000  #00  # 1000
+        num_mc_iterations = 10
         l_num_obs = [40, 60, 80, 100, 120]
-        # l_num_obs = [120]
-        estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
+
+        estimator_path = path_to_trained_dnn + 'usrp-32x32-40_to_150_meas/'
 
         num_feat = 6
-        #num_obs = 120
 
         l_estimators = [
-            KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
-            GudmundsonBatchKrigingEstimator().load_estimator(
-                estimator_path + "GudmundsonBatchKrigingEstimator/"),
-            KernelRidgeRegressionEstimator().load_estimator(
-                estimator_path + "KernelRidgeRegressionEstimator/"),
-            AttnMapEstimator(
-                num_feat=num_feat,
-                att_dnn=TransformerDnn(
-                    TransformerDnnConf(
-                        dim_input=num_feat + 1,  # num_feat + 1
-                        num_heads=2,
-                        dim_embedding=48,
-                        num_layers=4,
-                        dropout_prob=0,
-                        b_causal_masking=True,
-                        device_type='cuda:0',
-                    ),
-                    nn_folder=os.path.join(dnn_folder,
-                                           "transformer_experiment_2100"),
-                ))
-        ]
-
-        return get_rmse_curves(l_file_inds, patch_side_length, height, folder,
-                               num_points_x, gridpoint_spacing,
-                               'uniform_standard', num_mc_iterations,
-                               l_num_obs, l_estimators)
-
-    # USRP, dnn benchmarks
-    # RMSE vs. num obs
-    def experiment_3105_4(l_args):
-
-        folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
-        l_file_inds = [6, 17]
-        gridpoint_spacing = 1.2  # set to None for uniform sampling when generating the map
-        num_points_x = 32
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        height = 5
-        num_mc_iterations = 1000  #00  # 1000
-        l_num_obs = [40, 60, 80, 100, 120]
-
-        estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
-
-        l_estimators = [
+            # KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
+            # GudmundsonBatchKrigingEstimator().load_estimator(
+            #     estimator_path + "GudmundsonBatchKrigingEstimator/"),
             # KernelRidgeRegressionEstimator().load_estimator(
             #     estimator_path + "KernelRidgeRegressionEstimator/"),
             # NeuralNetworkMapEstimator(
@@ -1746,46 +1686,13 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             #     estimator=UnetStdAwareNnEstimator(
             #         load_weights_from=estimator_path +
             #         'unet_std_aware_estimator/best_weight')),
-            NeuralNetworkMapEstimator(
-                name_on_figs='DNN 4',
-                estimator=CompletionAutoencoderEstimator(
-                    height=num_points_x,
-                    width=num_points_x,
-                    load_weights_from=estimator_path +
-                    'completion_autoencoder/best_weight'))
-        ]
-
-        return get_rmse_curves(l_file_inds, patch_side_length, height, folder,
-                               num_points_x, gridpoint_spacing,
-                               'uniform_standard', num_mc_iterations,
-                               l_num_obs, l_estimators)
-
-    # 4G Gradiant, knn, kriging, transformer
-    # RMSE vs. num obs
-    # before fixing the bug in reshape_for_multihead_attention
-    def experiment_3107(l_args):
-
-        folder = folder_datasets + 'rme_datasets/gradiant/combined/rsrp/'
-        l_file_inds = [2]
-        gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
-        num_points_x = 16
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        height = 5
-        num_mc_iterations = 1000  #00  # 1000
-        l_num_obs = [40, 60, 80, 100, 120]
-
-        estimator_path = folder_datasets + 'estimators/JPaper/gradiant-rsrp-16x16-10_to_100_meas/'
-
-        num_feat = 6
-        #num_obs = 120
-
-        l_estimators = [
-            KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
-            GudmundsonBatchKrigingEstimator().load_estimator(
-                estimator_path + "GudmundsonBatchKrigingEstimator/"),
-            # KernelRidgeRegressionEstimator().load_estimator(
-            #     estimator_path + "KernelRidgeRegressionEstimator/"),
+            # NeuralNetworkMapEstimator(
+            #     name_on_figs='DNN 4',
+            #     estimator=CompletionAutoencoderEstimator(
+            #         height=num_points_x,
+            #         width=num_points_x,
+            #         load_weights_from=estimator_path +
+            #         'completion_autoencoder/best_weight')),
             AttnMapEstimator(
                 num_feat=num_feat,
                 att_dnn=TransformerDnn(
@@ -1795,690 +1702,159 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                         dim_embedding=48,
                         num_layers=4,
                         dropout_prob=0,
-                        b_causal_masking=
-                        True,  # It was trained with b_causal_masking=True
-                        device_type='cuda:1',
+                        b_causal_masking=True,
+                        device_type='mps',
                     ),
-                    nn_folder=os.path.join(dnn_folder,
-                                           "transformer_experiment_2100_15"),
+                    nn_folder=os.path.join(path_to_trained_storm,
+                                           "transformer_experiment_2000"),
                 ))
         ]
 
-        return get_rmse_curves(l_file_inds, patch_side_length, height, folder,
-                               num_points_x, gridpoint_spacing,
+        return get_rmse_curves(l_file_inds, patch_side_length, height,
+                               data_folder, num_points_x, gridpoint_spacing,
                                'uniform_standard', num_mc_iterations,
                                l_num_obs, l_estimators)
-
-    # 4G Gradiant, knn, kriging, transformer
-    # RMSE vs. num obs
-    # before fixing the bug in reshape_for_multihead_attention
-    def experiment_3107(l_args):
-
-        folder = folder_datasets + 'rme_datasets/gradiant/combined/rsrp/'
-        l_file_inds = [2]
-        gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
-        num_points_x = 16
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        height = 5
-        num_mc_iterations = 1000  #00  # 1000
-        l_num_obs = [40, 60, 80, 100, 120]
-
-        estimator_path = folder_datasets + 'estimators/JPaper/gradiant-rsrp-16x16-10_to_100_meas/'
-
-        num_feat = 6
-        #num_obs = 120
-
-        l_estimators = [
-            KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
-            GudmundsonBatchKrigingEstimator().load_estimator(
-                estimator_path + "GudmundsonBatchKrigingEstimator/"),
-            # KernelRidgeRegressionEstimator().load_estimator(
-            #     estimator_path + "KernelRidgeRegressionEstimator/"),
-            AttnMapEstimator(
-                num_feat=num_feat,
-                att_dnn=TransformerDnn(
-                    TransformerDnnConf(
-                        dim_input=num_feat + 1,  # num_feat + 1
-                        num_heads=2,
-                        dim_embedding=48,
-                        num_layers=4,
-                        dropout_prob=0,
-                        masking=
-                        True,  # It was trained with b_causal_masking=True
-                        device_type='cuda:0',
-                    ),
-                    nn_folder=os.path.join(dnn_folder,
-                                           "transformer_experiment_2105"),
-                ))
-        ]
-
-        return get_rmse_curves(l_file_inds, patch_side_length, height, folder,
-                               num_points_x, gridpoint_spacing,
-                               'uniform_standard', num_mc_iterations,
-                               l_num_obs, l_estimators)
-
-    # 4G Gradiant, krr, dnn benchmarks
-    # RMSE vs. num obs
-    def experiment_3107_6(l_args):
-
-        folder = folder_datasets + 'rme_datasets/gradiant/combined/rsrp/'
-        l_file_inds = [2]
-        gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
-        num_points_x = 16
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        height = 5
-        num_mc_iterations = 1000
-        l_num_obs = [40, 60, 80, 100, 120]
-
-        # estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
-        estimator_path = folder_datasets + 'estimators/JPaper/gradiant-rsrp-16x16-10_to_100_meas/'
-
-        l_estimators = [
-            KernelRidgeRegressionEstimator().load_estimator(
-                estimator_path + "KernelRidgeRegressionEstimator/"),
-            NeuralNetworkMapEstimator(
-                name_on_figs='DNN 1',
-                estimator=SurveyingStdAwareNnEstimator(
-                    load_weights_from=estimator_path +
-                    f'surveying_std_aware_estimator/' + 'best_weight')),
-            NeuralNetworkMapEstimator(
-                name_on_figs='DNN 2',
-                estimator=RadioUnetEstimator(load_weights_from=estimator_path +
-                                             'radio_unet/best_weight')),
-            NeuralNetworkMapEstimator(
-                name_on_figs='DNN 3',
-                estimator=UnetStdAwareNnEstimator(
-                    load_weights_from=estimator_path +
-                    'unet_std_aware_estimator/best_weight')),
-            NeuralNetworkMapEstimator(
-                name_on_figs='DNN 4',
-                estimator=CompletionAutoencoderEstimator(
-                    height=num_points_x,
-                    width=num_points_x,
-                    load_weights_from=estimator_path +
-                    'completion_autoencoder/best_weight'))
-        ]
-
-        return get_rmse_curves(l_file_inds, patch_side_length, height, folder,
-                               num_points_x, gridpoint_spacing,
-                               'uniform_standard', num_mc_iterations,
-                               l_num_obs, l_estimators)
-
-    # Ray tracing, transformer
-    # RMSE vs. num obs
-    # after fixing the bug in reshape_for_multihead_attention
-    def experiment_3112(l_args):
-
-        folder = folder_datasets + 'insite_data/power_rosslyn/'
-        l_file_inds = np.arange(41, 43)
-        gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
-        num_points_x = 16
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        height = 20
-        num_mc_iterations = 1000  #00  # 1000
-        l_num_obs = [20, 40, 60, 80, 100, 120]
-
-        # estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
-        estimator_path = folder_datasets + 'estimators/JPaper/gradiant-rsrp-16x16-10_to_100_meas/'
-
-        num_feat = 6
-        #num_obs = 120
-
-        l_estimators = [
-            KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
-            GudmundsonBatchKrigingEstimator().load_estimator(
-                estimator_path + "GudmundsonBatchKrigingEstimator/"),
-            KernelRidgeRegressionEstimator().load_estimator(
-                estimator_path + "KernelRidgeRegressionEstimator/"),
-            AttnMapEstimator(
-                num_feat=num_feat,
-                att_dnn=TransformerDnn(
-                    TransformerDnnConf(
-                        dim_input=num_feat + 1,  # num_feat + 1
-                        num_heads=2,
-                        dim_embedding=48,
-                        num_layers=4,
-                        dropout_prob=0,
-                        b_causal_masking=
-                        True,  # It was trained with b_causal_masking=True
-                        device_type='cuda:3',
-                    ),
-                    nn_folder=os.path.join(dnn_folder,
-                                           "transformer_experiment_2110"),
-                ))
-        ]
-
-        return get_rmse_curves(l_file_inds,
-                               patch_side_length,
-                               height,
-                               folder,
-                               num_points_x,
-                               gridpoint_spacing,
-                               'uniform_standard',
-                               num_mc_iterations,
-                               l_num_obs,
-                               l_estimators,
-                               b_insite_data=True)
-
-    # Ray tracing, knn, kriging, krr
-    # RMSE vs. num obs
-    # similar to 3112, when waiting for training the transformer
-    def experiment_3112_5(l_args):
-
-        folder = folder_datasets + 'insite_data/power_rosslyn/'
-        l_file_inds = np.arange(41, 43)
-        gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
-        num_points_x = 16
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        height = 20
-        num_mc_iterations = 100  #00  # 1000
-        l_num_obs = [20, 40, 60, 80, 100, 120]
-
-        # estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
-        estimator_path = folder_datasets + 'estimators/JPaper/gradiant-rsrp-16x16-10_to_100_meas/'
-
-        num_feat = 6
-        #num_obs = 120
-
-        l_estimators = [
-            KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
-            GudmundsonBatchKrigingEstimator().load_estimator(
-                estimator_path + "GudmundsonBatchKrigingEstimator/"),
-            KernelRidgeRegressionEstimator().load_estimator(
-                estimator_path + "KernelRidgeRegressionEstimator/"),
-            # AttnMapEstimator(
-            #     num_feat=num_feat,
-            #     att_dnn=TransformerDnn(
-            #         TransformerDnnConf(
-            #             dim_input=num_feat + 1,  # num_feat + 1
-            #             num_heads=2,
-            #             dim_embedding=48,
-            #             num_layers=4,
-            #             dropout_prob=0,
-            #             b_causal_masking=True,  # It was trained with b_causal_masking=True
-            #             device_type='cuda:3',
-            #         ),
-            #         nn_folder=os.path.join(dnn_folder,
-            #                                "transformer_experiment_2110"),
-            #     ))
-        ]
-
-        return get_rmse_curves(l_file_inds,
-                               patch_side_length,
-                               height,
-                               folder,
-                               num_points_x,
-                               gridpoint_spacing,
-                               'uniform_standard',
-                               num_mc_iterations,
-                               l_num_obs,
-                               l_estimators,
-                               b_insite_data=True)
-
-    # Ray tracing, other dnn benchmarks
-    # RMSE vs. num obs
-    def experiment_3112_10(l_args):
-
-        folder = folder_datasets + 'insite_data/power_rosslyn/'
-        l_file_inds = np.arange(41, 43)
-        gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
-        num_points_x = 16
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        height = 20
-        num_mc_iterations = 1000  #00  # 1000
-        l_num_obs = [20, 40, 60, 80, 100, 120]
-
-        estimator_path = 'output/trained_estimators/ray-tracing/'
-
-        l_estimators = [
-            NeuralNetworkMapEstimator(
-                name_on_figs='DNN 1',
-                estimator=SurveyingStdAwareNnEstimator(
-                    load_weights_from=estimator_path +
-                    f'surveying_std_aware_estimator/' + 'best_weight')),
-            NeuralNetworkMapEstimator(
-                name_on_figs='DNN 2',
-                estimator=RadioUnetEstimator(load_weights_from=estimator_path +
-                                             'radio_unet/best_weight')),
-            NeuralNetworkMapEstimator(
-                name_on_figs='DNN 3',
-                estimator=UnetStdAwareNnEstimator(
-                    load_weights_from=estimator_path +
-                    'unet_std_aware_estimator/best_weight')),
-            NeuralNetworkMapEstimator(
-                name_on_figs='DNN 4',
-                estimator=CompletionAutoencoderEstimator(
-                    height=num_points_x,
-                    width=num_points_x,
-                    load_weights_from=estimator_path +
-                    'completion_autoencoder/best_weight'))
-        ]
-
-        return get_rmse_curves(l_file_inds,
-                               patch_side_length,
-                               height,
-                               folder,
-                               num_points_x,
-                               gridpoint_spacing,
-                               'uniform_standard',
-                               num_mc_iterations,
-                               l_num_obs,
-                               l_estimators,
-                               b_insite_data=True)
-
-    # USRP, knn, kriging
-    # plot RMSE curves vs. different map indices
-    def experiment_3115(l_args):
-
-        folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
-        l_file_inds = list(range(18))
-
-        gridpoint_spacing = 1.2  # set to None for uniform sampling when generating the map
-        num_points_x = 32
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        evaluation_mode = 'uniform_standard'
-
-        height = 5
-        num_mc_iterations = 200  # 1000
-        l_num_obs = [50]
-
-        estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
-        l_estimators = [
-            KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
-            GudmundsonBatchKrigingEstimator().load_estimator(
-                estimator_path + "GudmundsonBatchKrigingEstimator/"),
-        ]
-        grid = RectangularGrid(num_points_x=num_points_x,
-                               num_points_y=num_points_x,
-                               gridpoint_spacing=gridpoint_spacing,
-                               height=height)
-        for estimator in l_estimators:
-            estimator.grid = grid
-
-        ll_rmse = [[], []]
-        l_legend = []
-        l_style = []
-
-        for ind_file, ind_map in enumerate(l_file_inds):
-
-            print(f'\nInd_map: {ind_map}')
-            map_generator = RealDataMapGenerator(
-                l_file_num=[ind_map],
-                patch_side_len=patch_side_length,
-                z_coord=height,
-                folder=folder,
-                gridpoint_spacing=gridpoint_spacing)
-
-            l_mse = MapEstimationSimulator.compare_estimators_monte_carlo(
-                map_generator=map_generator,
-                num_mc_iterations=num_mc_iterations,
-                l_estimators=l_estimators,
-                evaluation_mode=evaluation_mode,
-                l_num_obs=l_num_obs)
-
-            for ind_estimator, (str_legend, v_x, v_y,
-                                style) in enumerate(l_mse):
-
-                ll_rmse[ind_estimator].append(np.sqrt(v_y[0]))
-
-                if ind_file == 0:
-                    l_legend.append(str_legend)
-                    l_style.append(style)
-
-        G = GFigure(xlabel='Map index', ylabel=f"RMSE({evaluation_mode}) [dB]")
-
-        for ind_estimator, (str_legend,
-                            style) in enumerate(zip(l_legend, l_style)):
-            G.add_curve(l_file_inds,
-                        ll_rmse[ind_estimator],
-                        legend=str_legend,
-                        styles=style)
-
-        return G
-
-    # combine RMSE at many points that were run separately
-    def experiment_3120(l_args):
-
-        path_to_results = 'output/transformer_experiments/experiment_'
-
-        l_experiment_inds = [
-            '2004_51_39',
-            '2004_51_79',
-            '2004_51_119',
-            '2004_51_149',
-        ]
-
-        l_x = []
-        ll_y = []
-        for ind, experiment_ind in enumerate(l_experiment_inds):
-
-            with open(path_to_results + experiment_ind + '.pk', 'rb') as f:
-                G = pickle.load(f)[0]
-            l_y = []
-            for curve in G.l_subplots[0].l_curves:
-                l_y += curve.yaxis
-
-            l_x += G.l_subplots[0].l_curves[0].xaxis
-            ll_y.append(l_y)
-
-        v_x = np.array(l_x)
-        m_y = np.array(ll_y)
-        xlabel = G.l_subplots[0].xlabel
-        ylabel = G.l_subplots[0].ylabel
-
-        l_legend_str = [
-            G.l_subplots[0].l_curves[ind].legend_str
-            for ind in range(len(G.l_subplots[0].l_curves))
-        ]
-
-        l_styles = [
-            G.l_subplots[0].l_curves[ind].style
-            for ind in range(len(G.l_subplots[0].l_curves))
-        ]
-
-        G = GFigure(xlabel=xlabel, ylabel=ylabel)
-        for ind, legend_str in enumerate(l_legend_str):
-            G.add_curve(v_x,
-                        m_y[:, ind],
-                        legend=legend_str,
-                        styles=l_styles[ind])
-
-        return G
-
-    # plot the RMSE curves for different transformer models
-    # the models in this experiment were trained with masking [40, 120]
-    def experiment_3125(l_args):
-
-        folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
-        l_file_inds = [6, 17]
-        gridpoint_spacing = 1.2  # set to None for uniform sampling when generating the map
-        num_points_x = 32
-        patch_side_length = num_points_x * gridpoint_spacing
-
-        l_evaluation_modes = [
-            'uniform_standard',
-        ]
-        height = 5
-        num_mc_iterations = 1
-        l_num_obs = [40, 60, 80, 100, 120]
-
-        device_type = 'mps'
-
-        l_estimators = [
-            AttnMapEstimator(num_feat=5,
-                             att_dnn=TransformerDnn(
-                                 TransformerDnnConf(
-                                     dim_input=5 + 1,
-                                     num_heads=2,
-                                     dim_embedding=48,
-                                     num_layers=4,
-                                     dropout_prob=0.0,
-                                     masking=True,
-                                     device_type=device_type,
-                                 ),
-                                 nn_folder=os.path.join(
-                                     dnn_folder,
-                                     "transformer_experiment_1503_5"),
-                             )),
-            AttnMapEstimator(num_feat=8,
-                             att_dnn=TransformerDnn(
-                                 TransformerDnnConf(
-                                     dim_input=8 + 1,
-                                     num_heads=2,
-                                     dim_embedding=48,
-                                     num_layers=4,
-                                     dropout_prob=0.05,
-                                     masking=True,
-                                     device_type=device_type,
-                                 ),
-                                 nn_folder=os.path.join(
-                                     dnn_folder,
-                                     "transformer_experiment_1503_8"),
-                             )),
-            AttnMapEstimator(num_feat=5,
-                             att_dnn=TransformerDnn(
-                                 TransformerDnnConf(
-                                     dim_input=5 + 1,
-                                     num_heads=2,
-                                     dim_embedding=48,
-                                     num_layers=8,
-                                     dropout_prob=0.05,
-                                     masking=True,
-                                     device_type=device_type,
-                                 ),
-                                 nn_folder=os.path.join(
-                                     dnn_folder,
-                                     "transformer_experiment_1505_5"),
-                             )),
-            AttnMapEstimator(num_feat=8,
-                             att_dnn=TransformerDnn(
-                                 TransformerDnnConf(
-                                     dim_input=8 + 1,
-                                     num_heads=2,
-                                     dim_embedding=48,
-                                     num_layers=8,
-                                     dropout_prob=0.05,
-                                     masking=True,
-                                     device_type=device_type,
-                                 ),
-                                 nn_folder=os.path.join(
-                                     dnn_folder,
-                                     "transformer_experiment_1505_8"),
-                             )),
-            AttnMapEstimator(
-                num_feat=8,
-                att_dnn=TransformerDnn(
-                    TransformerDnnConf(
-                        dim_input=8 + 1,  # num_feat + 1
-                        num_heads=3,
-                        dim_embedding=96,
-                        num_layers=6,
-                        dropout_prob=0.0,
-                        masking=True,
-                        device_type=device_type,
-                    ),
-                    nn_folder=os.path.join(dnn_folder,
-                                           "transformer_experiment_1507"),
-                )),
-            AttnMapEstimator(
-                num_feat=8,
-                att_dnn=TransformerDnn(
-                    TransformerDnnConf(
-                        dim_input=8 + 1,  # num_feat + 1
-                        num_heads=4,
-                        dim_embedding=192,
-                        num_layers=12,
-                        dropout_prob=0.05,
-                        masking=True,
-                        device_type=device_type,
-                    ),
-                    nn_folder=os.path.join(dnn_folder,
-                                           "transformer_experiment_1510"),
-                ))
-        ]
-        l_G = []
-        for evaluation_mode in tqdm(l_evaluation_modes):
-            G = get_rmse_curves(l_file_inds, patch_side_length, height, folder,
-                                num_points_x, gridpoint_spacing,
-                                evaluation_mode, num_mc_iterations, l_num_obs,
-                                l_estimators)
-            l_G.append(G)
-        return l_G
-
-    ############################################################################
-    # 33. Custom experiments to combined results from previous experiments
-    ############################################################################
-
-    # USRP
-    def experiment_3300(l_args):
-        path_to_results = 'output/transformer_experiments/experiment_'
-
-        l_experiment_inds = [
-            '3105',  # transformers
-            '3105_4',  # dnn benchmarks
-        ]
-
-        l_y = []
-        l_legend_str = []
-        l_styles = []
-        for ind, experiment_ind in enumerate(l_experiment_inds):
-
-            with open(path_to_results + experiment_ind + '.pk', 'rb') as f:
-                G = pickle.load(f)[0]
-
-            for ind, curve in enumerate(G.l_subplots[0].l_curves):
-                l_y.append(curve.yaxis)
-                l_legend_str.append(curve.legend_str)
-                l_styles.append(curve.style)
-
-        l_x = G.l_subplots[0].l_curves[0].xaxis
-
-        l_order = [0, 1, 3, 7, 5, 6, 4, 2]
-
-        l_styles = [
-            '.-#1f77b4', 'v-#2ca02c', 's-#d62728', '^-#ff7f0e', 'p-#9467bd',
-            '*-#8c564b', 'X-#e377c2', 'P-#7f7f7f', 'D-#bcbd22', '.-#17becf'
-        ]
-
-        l_legend_str[l_legend_str.index('KNN 1')] = 'KNN'
-        l_legend_str[l_legend_str.index('KrigingEstimator')] = 'Kriging'
-        l_legend_str[l_legend_str.index('KernelRidgeRegression')] = 'KRR'
-        l_legend_str[l_legend_str.index(
-            'AttnMapEstimator')] = 'STORM (Proposed)'
-        l_legend_str[l_legend_str.index('DNN 1')] = 'DNN 1 tempt'
-        l_legend_str[l_legend_str.index('DNN 4')] = 'DNN 1'
-        l_legend_str[l_legend_str.index('DNN 1 tempt')] = 'DNN 4'
-
-        v_x = np.array(l_x)
-        m_y = np.array(l_y)
-        xlabel = 'Number of observations'  # G.l_subplots[0].xlabel
-        ylabel = 'RMSE [dB]'  # G.l_subplots[0].ylabel
-
-        G = GFigure(xlabel=xlabel, ylabel=ylabel)
-        for ind in l_order:
-            G.add_curve(v_x,
-                        m_y[ind],
-                        legend=l_legend_str[ind],
-                        styles=l_styles[ind])
-
-        G.plot()
-
-        return G
 
     # Gradiant
-    def experiment_3307(l_args):
-        path_to_results = 'output/transformer_experiments/experiment_'
+    # RMSE vs. num obs
+    def experiment_3107(l_args):
 
-        l_experiment_inds = [
-            '3107',  # transformer before debugging reshape_for_multihead_attention
-            '3107_6',  # dnn benchmarks
+        folder = folder_datasets + 'rme_datasets/gradiant/combined/rsrp/'
+        l_file_inds = [2]
+        gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
+        num_points_x = 16
+        patch_side_length = num_points_x * gridpoint_spacing
+
+        height = 5
+        num_mc_iterations = 10
+        l_num_obs = [40, 60, 80, 100, 120]
+
+        estimator_path = folder_datasets + 'estimators/JPaper/gradiant-rsrp-16x16-10_to_100_meas/'
+
+        num_feat = 6
+
+        l_estimators = [
+            # KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
+            # GudmundsonBatchKrigingEstimator().load_estimator(
+            #     estimator_path + "GudmundsonBatchKrigingEstimator/"),
+            # KernelRidgeRegressionEstimator().load_estimator(
+            #     estimator_path + "KernelRidgeRegressionEstimator/"),
+            # NeuralNetworkMapEstimator(
+            #     name_on_figs='DNN 1',
+            #     estimator=SurveyingStdAwareNnEstimator(
+            #         load_weights_from=estimator_path +
+            #         f'surveying_std_aware_estimator/' + 'best_weight')),
+            # NeuralNetworkMapEstimator(
+            #     name_on_figs='DNN 2',
+            #     estimator=RadioUnetEstimator(load_weights_from=estimator_path +
+            #                                  'radio_unet/best_weight')),
+            # NeuralNetworkMapEstimator(
+            #     name_on_figs='DNN 3',
+            #     estimator=UnetStdAwareNnEstimator(
+            #         load_weights_from=estimator_path +
+            #         'unet_std_aware_estimator/best_weight')),
+            # NeuralNetworkMapEstimator(
+            #     name_on_figs='DNN 4',
+            #     estimator=CompletionAutoencoderEstimator(
+            #         height=num_points_x,
+            #         width=num_points_x,
+            #         load_weights_from=estimator_path +
+            #         'completion_autoencoder/best_weight')),
+            AttnMapEstimator(
+                num_feat=num_feat,
+                att_dnn=TransformerDnn(
+                    TransformerDnnConf(
+                        dim_input=num_feat + 1,  # num_feat + 1
+                        num_heads=2,
+                        dim_embedding=48,
+                        num_layers=4,
+                        dropout_prob=0,
+                        b_causal_masking=True,
+                        device_type='mps',
+                    ),
+                    nn_folder=os.path.join(path_to_trained_storm,
+                                           "transformer_experiment_2005"),
+                ))
         ]
 
-        l_y = []
-        l_legend_str = []
-        l_styles = []
-        for ind, experiment_ind in enumerate(l_experiment_inds):
-
-            with open(path_to_results + experiment_ind + '.pk', 'rb') as f:
-                G = pickle.load(f)[0]
-
-            for ind, curve in enumerate(G.l_subplots[0].l_curves):
-                l_y.append(curve.yaxis)
-                l_legend_str.append(curve.legend_str)
-                l_styles.append(curve.style)
-
-        l_x = G.l_subplots[0].l_curves[0].xaxis
-
-        l_order = [0, 1, 3, 7, 5, 6, 4, 2]
-        l_styles = [
-            '.-#1f77b4', 'v-#2ca02c', 's-#d62728', '^-#ff7f0e', 'p-#9467bd',
-            '*-#8c564b', 'X-#e377c2', 'P-#7f7f7f', 'D-#bcbd22', '.-#17becf'
-        ]
-        l_legend_str[l_legend_str.index('KNN 1')] = 'KNN'
-        l_legend_str[l_legend_str.index('KrigingEstimator')] = 'Kriging'
-        l_legend_str[l_legend_str.index('KernelRidgeRegression')] = 'KRR'
-        l_legend_str[l_legend_str.index(
-            'AttnMapEstimator')] = 'STORM (Proposed)'
-
-        l_legend_str[l_legend_str.index('DNN 1')] = 'DNN 1 tempt'
-        l_legend_str[l_legend_str.index('DNN 4')] = 'DNN 1'
-        l_legend_str[l_legend_str.index('DNN 1 tempt')] = 'DNN 4'
-
-        v_x = np.array(l_x)
-        m_y = np.array(l_y)
-        xlabel = 'Number of observations'  # G.l_subplots[0].xlabel
-        ylabel = 'RMSE [dB]'  # G.l_subplots[0].ylabel
-
-        G = GFigure(xlabel=xlabel, ylabel=ylabel)
-        for ind in l_order:
-            G.add_curve(v_x,
-                        m_y[ind],
-                        legend=l_legend_str[ind],
-                        styles=l_styles[ind])
-
-        G.plot()
-
-        return G
+        return get_rmse_curves(l_file_inds, patch_side_length, height, folder,
+                               num_points_x, gridpoint_spacing,
+                               'uniform_standard', num_mc_iterations,
+                               l_num_obs, l_estimators)
 
     # Ray tracing
-    def experiment_3315(l_args):
-        path_to_results = 'output/transformer_experiments/experiment_'
+    # RMSE vs. num obs
+    def experiment_3112(l_args):
 
-        l_experiment_inds = [
-            '3112',
-            '3112_10',
+        data_folder = folder_datasets + 'insite_data/power_rosslyn/'
+        l_file_inds = np.arange(41, 43)
+        gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
+        num_points_x = 16
+        patch_side_length = num_points_x * gridpoint_spacing
+
+        height = 20
+        num_mc_iterations = 10
+        l_num_obs = [20, 40, 60, 80, 100, 120]
+
+        estimator_path = path_to_trained_dnn + 'ray-tracing/'
+
+        num_feat = 6
+
+        l_estimators = [
+            # KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
+            # GudmundsonBatchKrigingEstimator().load_estimator(
+            #     estimator_path + "GudmundsonBatchKrigingEstimator/"),
+            # KernelRidgeRegressionEstimator().load_estimator(
+            #     estimator_path + "KernelRidgeRegressionEstimator/"),
+            # NeuralNetworkMapEstimator(
+            #     name_on_figs='DNN 1',
+            #     estimator=SurveyingStdAwareNnEstimator(
+            #         load_weights_from=estimator_path +
+            #         f'surveying_std_aware_estimator/' + 'best_weight')),
+            # NeuralNetworkMapEstimator(
+            #     name_on_figs='DNN 2',
+            #     estimator=RadioUnetEstimator(load_weights_from=estimator_path +
+            #                                  'radio_unet/best_weight')),
+            # NeuralNetworkMapEstimator(
+            #     name_on_figs='DNN 3',
+            #     estimator=UnetStdAwareNnEstimator(
+            #         load_weights_from=estimator_path +
+            #         'unet_std_aware_estimator/best_weight')),
+            # NeuralNetworkMapEstimator(
+            #     name_on_figs='DNN 4',
+            #     estimator=CompletionAutoencoderEstimator(
+            #         height=num_points_x,
+            #         width=num_points_x,
+            #         load_weights_from=estimator_path +
+            #         'completion_autoencoder/best_weight')),
+            AttnMapEstimator(
+                num_feat=num_feat,
+                att_dnn=TransformerDnn(
+                    TransformerDnnConf(
+                        dim_input=num_feat + 1,  # num_feat + 1
+                        num_heads=2,
+                        dim_embedding=48,
+                        num_layers=4,
+                        dropout_prob=0,
+                        b_causal_masking=True,
+                        device_type='mps',
+                    ),
+                    nn_folder=os.path.join(path_to_trained_storm,
+                                           "transformer_experiment_2010"),
+                ))
         ]
 
-        l_y = []
-        l_legend_str = []
-        l_styles = []
-        for ind, experiment_ind in enumerate(l_experiment_inds):
-
-            with open(path_to_results + experiment_ind + '.pk', 'rb') as f:
-                G = pickle.load(f)[0]
-
-            for ind, curve in enumerate(G.l_subplots[0].l_curves):
-                l_y.append(curve.yaxis)
-                l_legend_str.append(curve.legend_str)
-                l_styles.append(curve.style)
-
-        l_x = G.l_subplots[0].l_curves[0].xaxis
-
-        l_order = [0, 1, 2, 7, 5, 6, 3]  # 4
-        l_styles = [
-            '.-#1f77b4', 'v-#2ca02c', '^-#ff7f0e', 's-#d62728', 'p-#9467bd',
-            '*-#8c564b', 'X-#e377c2', 'P-#7f7f7f', 'D-#bcbd22', '.-#17becf'
-        ]
-        l_legend_str[l_legend_str.index('KNN 1')] = 'KNN'
-        l_legend_str[l_legend_str.index('KrigingEstimator')] = 'Kriging'
-        l_legend_str[l_legend_str.index('KernelRidgeRegression')] = 'KRR'
-        l_legend_str[l_legend_str.index(
-            'AttnMapEstimator')] = 'STORM (Proposed)'
-        l_legend_str[l_legend_str.index('DNN 1')] = 'DNN 1 tempt'
-        l_legend_str[l_legend_str.index('DNN 4')] = 'DNN 1'
-        l_legend_str[l_legend_str.index('DNN 1 tempt')] = 'DNN 4'
-
-        v_x = np.array(l_x)
-        m_y = np.array(l_y)
-        xlabel = 'Number of observations'  # G.l_subplots[0].xlabel
-        ylabel = 'RMSE [dB]'  # G.l_subplots[0].ylabel
-
-        G = GFigure(xlabel=xlabel, ylabel=ylabel)
-        for ind in l_order:
-            G.add_curve(v_x,
-                        m_y[ind],
-                        legend=l_legend_str[ind],
-                        styles=l_styles[ind])
-
-        G.plot()
-
-        return G
+        return get_rmse_curves(l_file_inds,
+                               patch_side_length,
+                               height,
+                               data_folder,
+                               num_points_x,
+                               gridpoint_spacing,
+                               'uniform_standard',
+                               num_mc_iterations,
+                               l_num_obs,
+                               l_estimators,
+                               b_insite_data=True)
 
     ############################################################################
     # 40. Experiments for active sensing
@@ -2521,7 +1897,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                     device_type=None,
                 ),
                 nn_folder=os.path.join(
-                    dnn_folder,
+                    path_to_trained_storm,
                     f"transformer_{inspect.currentframe().f_code.co_name}/high_num_obs"
                 ),
             ))
@@ -2627,7 +2003,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                     device_type=None,
                 ),
                 nn_folder=os.path.join(
-                    dnn_folder,
+                    path_to_trained_storm,
                     f"transformer_{inspect.currentframe().f_code.co_name}/medium_model"
                 ),
             ))
