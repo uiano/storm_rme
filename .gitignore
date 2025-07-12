@@ -9,3 +9,4 @@ gsim_conf.py
 .vscode
 __pycache__
 output
+.DS_Store

@@ -1667,7 +1667,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         num_feat = 6
 
         l_estimators = [
-            # KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
+            KNNEstimator().load_estimator(estimator_path + "KNNEstimator/"),
             # GudmundsonBatchKrigingEstimator().load_estimator(
             #     estimator_path + "GudmundsonBatchKrigingEstimator/"),
             # KernelRidgeRegressionEstimator().load_estimator(
@@ -1729,7 +1729,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         num_mc_iterations = 10
         l_num_obs = [40, 60, 80, 100, 120]
 
-        estimator_path = folder_datasets + 'estimators/JPaper/gradiant-rsrp-16x16-10_to_100_meas/'
+        estimator_path = folder_datasets + 'gradiant-rsrp-16x16-10_to_100_meas/'
 
         num_feat = 6
 

@@ -13,7 +13,8 @@ from scipy.spatial.distance import euclidean
 from scipy.stats import norm
 from sklearn.metrics.pairwise import euclidean_distances
 
-from .map_estimator import MapEstimator
+from ..map_estimators.map_estimator import MapEstimator
+
 from ..utilities import empty_array
 
 
