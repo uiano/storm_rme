@@ -11,12 +11,24 @@ This repository contains the implementation of STORM and the code to reproduce t
 
 - Training and testing data are available inside folder `data`. We will work with three datasets, referred to as USRP, Gradiant, and ray-tracing; for more information, see ["Radio Map Estimation: Empirical Validation and Analysis"](https://arxiv.org/pdf/2310.11036).
 
-- The following folders contain the trained weights for the benchmark estimators. The folders should be downloaded to `output/trained_estimators`:
+
+
+## Set up
+After cloning the repository, do the following steps.
+1. Install gsim:
+    `git submodule`
+    `git submodule update`
+    `bash gsim/install.sh`
+
+2. In `gsim_conf.py`, change `module_name = "experiments.example_experiments"` to `module_name = "experiments.transformer_experiments"`.
+
+3. An experiment, e.g. `experiment_1000` can be run as follows: 
+    `python run_experiment 1000`
+
+4. This step is optional as it is to download the trained weights for the benchmark estimators. The following folders should be downloaded to `output/trained_estimators`:
     - USRP: [Updating link]()
     - Gradiant: [Updating link]()
     - Ray-tracing: [Updating link]()
-
-## Set up
 
 ## Radio map estimation
 1. Create training datasets:

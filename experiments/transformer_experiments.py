@@ -33,7 +33,6 @@ import pickle
 
 import gsim
 from gsim.gfigure import GFigure
-from gsim_conf import folder_datasets
 
 from ..gsim.include.neural_net import NeuralNet, LossLandscapeConfig
 
@@ -42,8 +41,9 @@ from ..simulators.map_estimation_simulator import MapEstimationSimulator
 from ..map_estimators.transformer_estimator import AttnMapEstimator
 from torch.utils.data import TensorDataset
 
-path_to_trained_storm = 'output/trained_estimators/transformers/'
-path_to_trained_dnn = 'output/trained_estimators/'
+PATH_TO_TRAINED_STORM = 'output/trained_estimators/transformers/'
+PATH_TO_TRAINED_DNN = 'output/trained_estimators/'
+FOLDER_DATASETS = "data/rme_data/"
 
 
 def get_non_preprocessed_file_base_name(num_meas_per_map):
@@ -220,7 +220,7 @@ def init_map_generator(patch_side_len=None,
             l_file_num=[0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             patch_side_len=patch_side_len,
             z_coord=5,
-            folder=folder_datasets +
+            folder=FOLDER_DATASETS +
             'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/')
     elif dataset == '4g':
         folder_train_dataset = f'output/datasets/gradiant_train_{int(num_examples_train/1000)}k-patch_{patch_side_len}_m/'
@@ -229,7 +229,7 @@ def init_map_generator(patch_side_len=None,
         map_generator = RealDataMapGenerator(
             l_file_num=[0, 1, 2],
             patch_side_len=patch_side_len,
-            folder=folder_datasets + 'rme_datasets/gradiant/combined/rsrp')
+            folder=FOLDER_DATASETS + 'rme_datasets/gradiant/combined/rsrp')
     elif dataset == 'ray-tracing':
         folder_train_dataset = f'output/datasets/insite_train_{int(num_examples_train/1000)}k/'
         folder_test_dataset = f'output/datasets/insite_test_{int(num_examples_test/1000)}k/'
@@ -239,7 +239,7 @@ def init_map_generator(patch_side_len=None,
             list(range(8, 41)),  # use 41 and 42 for the test set
             patch_side_len=patch_side_len,
             #     z_coord=5, # not considered so far. Useful?
-            folder=folder_datasets + "insite_data/power_rosslyn/",
+            folder=FOLDER_DATASETS + "insite_data/power_rosslyn/",
         )
     else:
         raise ValueError(f"Unknown dataset: {dataset}")
@@ -470,7 +470,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             l_file_num=[0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             patch_side_len=num_points_x * gridpoint_spacing,
             z_coord=height,
-            folder=folder_datasets +
+            folder=FOLDER_DATASETS +
             'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'),
                     save_to_folder=
                     f'output/datasets/usrp_{num_points_x}x{num_points_x}/',
@@ -484,7 +484,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
     def experiment_1005(l_args):
 
         metric = 'rsrp'
-        folder = folder_datasets + f'rme_datasets/gradiant/combined/{metric}/'
+        folder = FOLDER_DATASETS + f'rme_datasets/gradiant/combined/{metric}/'
         l_file_inds_train = [0, 1]
         height = 5
         gridpoint_spacing = 4
@@ -521,7 +521,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             l_file_num=np.arange(1, 41),
             patch_side_len=num_points_x * gridpoint_spacing,
             z_coord=height,
-            folder=folder_datasets + "insite_data/power_rosslyn/",
+            folder=FOLDER_DATASETS + "insite_data/power_rosslyn/",
             gridpoint_spacing=gridpoint_spacing)
 
         gen_dataset(
@@ -539,7 +539,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         # copied from 7201 in spectrum_measurement_experiments
 
         # ray-tracing dataset
-        folder_in = folder_datasets + 'insite_data/power_rosslyn/'
+        folder_in = FOLDER_DATASETS + 'insite_data/power_rosslyn/'
         folder_out = 'output/datasets/ray_tracing_DNN/'
         if not os.path.exists(folder_out):
             os.makedirs(folder_out)
@@ -651,7 +651,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             dataset,
             dataset_val=None,
             nn_folder=os.path.join(
-                path_to_trained_storm,
+                PATH_TO_TRAINED_STORM,
                 f"transformer_{inspect.currentframe().f_code.co_name}"),
             context_len_min=40,
             num_feat=num_feat,
@@ -692,7 +692,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             dataset,
             dataset_val=None,
             nn_folder=os.path.join(
-                path_to_trained_storm,
+                PATH_TO_TRAINED_STORM,
                 f"transformer_{inspect.currentframe().f_code.co_name}"),
             context_len_min=10,
             num_feat=num_feat,
@@ -735,7 +735,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
             dataset,
             dataset_val=None,
             nn_folder=os.path.join(
-                path_to_trained_storm,
+                PATH_TO_TRAINED_STORM,
                 f"transformer_{inspect.currentframe().f_code.co_name}"),
             context_len_min=10,
             num_feat=num_feat,
@@ -798,7 +798,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                 l_file_num=np.arange(1, 41),
                 patch_side_len=num_points_x * gridpoint_spacing,
                 z_coord=height,
-                folder=folder_datasets + f'insite_data/power_rosslyn/',
+                folder=FOLDER_DATASETS + f'insite_data/power_rosslyn/',
                 gridpoint_spacing=gridpoint_spacing),
                                 num_obs=num_obs_train,
                                 evaluation_mode=evaluation_mode_train,
@@ -1435,10 +1435,10 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         print(f'Random seed: {random_seed}')
         np.random.seed(random_seed)  #100
 
-        data_folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
+        data_folder = FOLDER_DATASETS + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
         gridpoint_spacing = 1.2
         ind_file = 6
-        estimator_path = path_to_trained_dnn + 'usrp-32x32-40_to_150_meas/'
+        estimator_path = PATH_TO_TRAINED_DNN + 'usrp-32x32-40_to_150_meas/'
         num_points_x = 32
 
         patch_side_len = num_points_x * gridpoint_spacing
@@ -1503,7 +1503,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                         b_causal_masking=True,
                         device_type='mps',
                     ),
-                    nn_folder=os.path.join(path_to_trained_storm,
+                    nn_folder=os.path.join(PATH_TO_TRAINED_STORM,
                                            "transformer_experiment_2100_5"),
                 ))
         ]
@@ -1571,7 +1571,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         print(f'ind_map: {ind_map}')
         np.random.seed(random_seed)
 
-        folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
+        folder = FOLDER_DATASETS + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
         gridpoint_spacing = 1.2
 
         num_points_x = 42
@@ -1587,7 +1587,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                                gridpoint_spacing=gridpoint_spacing,
                                height=height)
 
-        estimator_path = folder_datasets + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
+        estimator_path = FOLDER_DATASETS + 'estimators/JPaper/usrp-32x32-40_to_150_meas/'
         estimator = KNNEstimator().load_estimator(estimator_path +
                                                   "KNNEstimator/")
 
@@ -1604,7 +1604,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                     b_causal_masking=True,
                     device_type='mps',
                 ),
-                nn_folder=os.path.join(path_to_trained_storm,
+                nn_folder=os.path.join(PATH_TO_TRAINED_STORM,
                                        "transformer_experiment_2100"),
             ))
         l_G = []
@@ -1652,7 +1652,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
     # RMSE vs. num obs,
     def experiment_3105(l_args):
 
-        data_folder = folder_datasets + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
+        data_folder = FOLDER_DATASETS + 'rme_datasets/usrp_data/grid_spacing_120_cm-freq_918_MHz/'
         l_file_inds = [6, 17]
         gridpoint_spacing = 1.2  # set to None for uniform sampling when generating the map
         num_points_x = 32
@@ -1662,7 +1662,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         num_mc_iterations = 10
         l_num_obs = [40, 60, 80, 100, 120]
 
-        estimator_path = path_to_trained_dnn + 'usrp-32x32-40_to_150_meas/'
+        estimator_path = PATH_TO_TRAINED_DNN + 'usrp-32x32-40_to_150_meas/'
 
         num_feat = 6
 
@@ -1705,7 +1705,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                         b_causal_masking=True,
                         device_type='mps',
                     ),
-                    nn_folder=os.path.join(path_to_trained_storm,
+                    nn_folder=os.path.join(PATH_TO_TRAINED_STORM,
                                            "transformer_experiment_2000"),
                 ))
         ]
@@ -1719,7 +1719,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
     # RMSE vs. num obs
     def experiment_3107(l_args):
 
-        folder = folder_datasets + 'rme_datasets/gradiant/combined/rsrp/'
+        folder = FOLDER_DATASETS + 'rme_datasets/gradiant/combined/rsrp/'
         l_file_inds = [2]
         gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
         num_points_x = 16
@@ -1729,7 +1729,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         num_mc_iterations = 10
         l_num_obs = [40, 60, 80, 100, 120]
 
-        estimator_path = folder_datasets + 'gradiant-rsrp-16x16-10_to_100_meas/'
+        estimator_path = FOLDER_DATASETS + 'gradiant-rsrp-16x16-10_to_100_meas/'
 
         num_feat = 6
 
@@ -1772,7 +1772,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                         b_causal_masking=True,
                         device_type='mps',
                     ),
-                    nn_folder=os.path.join(path_to_trained_storm,
+                    nn_folder=os.path.join(PATH_TO_TRAINED_STORM,
                                            "transformer_experiment_2005"),
                 ))
         ]
@@ -1786,7 +1786,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
     # RMSE vs. num obs
     def experiment_3112(l_args):
 
-        data_folder = folder_datasets + 'insite_data/power_rosslyn/'
+        data_folder = FOLDER_DATASETS + 'insite_data/power_rosslyn/'
         l_file_inds = np.arange(41, 43)
         gridpoint_spacing = 4  # set to None for uniform sampling when generating the map
         num_points_x = 16
@@ -1796,7 +1796,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
         num_mc_iterations = 10
         l_num_obs = [20, 40, 60, 80, 100, 120]
 
-        estimator_path = path_to_trained_dnn + 'ray-tracing/'
+        estimator_path = PATH_TO_TRAINED_DNN + 'ray-tracing/'
 
         num_feat = 6
 
@@ -1839,7 +1839,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                         b_causal_masking=True,
                         device_type='mps',
                     ),
-                    nn_folder=os.path.join(path_to_trained_storm,
+                    nn_folder=os.path.join(PATH_TO_TRAINED_STORM,
                                            "transformer_experiment_2010"),
                 ))
         ]
@@ -1897,7 +1897,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                     device_type=None,
                 ),
                 nn_folder=os.path.join(
-                    path_to_trained_storm,
+                    PATH_TO_TRAINED_STORM,
                     f"transformer_{inspect.currentframe().f_code.co_name}/high_num_obs"
                 ),
             ))
@@ -2003,7 +2003,7 @@ class ExperimentSet(gsim.AbstractExperimentSet):
                     device_type=None,
                 ),
                 nn_folder=os.path.join(
-                    path_to_trained_storm,
+                    PATH_TO_TRAINED_STORM,
                     f"transformer_{inspect.currentframe().f_code.co_name}/medium_model"
                 ),
             ))
