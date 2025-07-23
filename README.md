@@ -25,10 +25,7 @@ After cloning the repository, do the following steps.
 3. An experiment, e.g. `experiment_1000` can be run as follows: 
     `python run_experiment 1000`
 
-4. This step is optional as it is to download the trained weights for the benchmark estimators. The following folders should be downloaded to `output/trained_estimators`:
-    - USRP: [Updating link]()
-    - Gradiant: [Updating link]()
-    - Ray-tracing: [Updating link]()
+4. This step is optional as it is to download the trained weights for the benchmark estimators. The folders inside [this link](https://drive.google.com/drive/folders/1ezbkS7dSBe5qanIcA8Hk7a4i0cOiJ313?usp=drive_link) should be downloaded to `output/trained_estimators`.
 
 ## Radio map estimation
 1. Create training datasets:
