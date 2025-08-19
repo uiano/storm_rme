@@ -16,9 +16,10 @@ This repository contains the implementation of STORM and the code to reproduce t
 ## Set up
 After cloning the repository, do the following steps.
 1. Install gsim:
-    `git submodule`
+    `git submodule init`
     `git submodule update`
     `bash gsim/install.sh`
+For more information, see [gsim](https://github.com/fachu000/GSim-Python/tree/264210f32beba3ffb07ebb4dda6aff689c693b0d).
 
 2. In `gsim_conf.py`, change `module_name = "experiments.example_experiments"` to `module_name = "experiments.transformer_experiments"`.
 
